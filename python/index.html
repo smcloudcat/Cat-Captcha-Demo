@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cat-Captcha SDK 演示 · Python</title>
+<link rel="icon" type="image/svg+xml" href="https://captcha.lwcat.cn/favicon.svg">
+<link rel="stylesheet" href="https://captcha.lwcat.cn/public/captcha.css?v=1.0.5">
+<script src="https://captcha.lwcat.cn/public/captcha.js?v=1.0.5"></script>
+<style>
+:root { color-scheme: light; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font: 14px/22px -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; padding: 40px; background: #f4f6fb; color: #1f2430; }
+.wrap { max-width: 860px; margin: 0 auto; }
+.demo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 16px; }
+.box { background: #fff; border: 1px solid rgba(20,24,33,.1); border-radius: 14px; padding: 24px; box-shadow: 0 8px 28px rgba(20,24,33,.06); }
+.box h2 { font-size: 15px; margin: 0 0 4px; }
+.box h2 .mode { font-size: 11px; color: #8b93a3; font-weight: 400; margin-left: 6px; }
+.box .desc { font-size: 12px; color: #8b93a3; margin: 0 0 16px; }
+.field { margin-bottom: 10px; }
+.field label { display: block; font-size: 12px; color: #5a6272; margin-bottom: 4px; }
+input { width: 100%; padding: 8px; border: 1px solid rgba(20,24,33,.15); border-radius: 8px; }
+button { width: 100%; padding: 10px; background: #4753ff; color: #fff; border: none; border-radius: 8px; cursor: pointer; }
+button:disabled { background: #a9b0ff; cursor: not-allowed; }
+#msg-a, #msg-b { margin-top: 12px; font-size: 12px; color: #5a6272; min-height: 18px; }
+#res-a, #res-b { margin-top: 10px; font-size: 12px; color: #0b7a50; word-break: break-all; }
+@media (max-width: 720px) { .demo-grid { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+    <div class="demo-grid">
+
+        <div class="box">
+            <h2>方式一 · 触发框验证<span class="mode">极验风格</span></h2>
+            <p class="desc">登录按钮上方放置「智能验证」触发框：先验证通过，再点击登录（未验证时登录按钮不可用）</p>
+            <form id="form-a">
+                <div class="field"><label>用户名</label><input name="user" value="demo"></div>
+                <div class="field"><label>密码</label><input name="pass" type="password" value="123456"></div>
+            </form>
+            <div id="captcha-box" style="margin-bottom:10px"></div>
+            <button id="login-a" type="button" disabled>登 录</button>
+            <div id="msg-a"></div>
+            <div id="res-a"></div>
+        </div>
+
+        <div class="box">
+            <h2>方式二 · 点击登录触发<span class="mode">极简接入</span></h2>
+            <p class="desc">登录按钮即验证触发点：点击直接弹出验证，通过后提交票据（经典接入方式）</p>
+            <form id="form-b">
+                <div class="field"><label>用户名</label><input name="user" value="demo"></div>
+                <div class="field"><label>密码</label><input name="pass" type="password" value="123456"></div>
+            </form>
+            <button id="login-b" type="button">登 录</button>
+            <div id="msg-b"></div>
+            <div id="res-b"></div>
+        </div>
+
+    </div>
+</div>
+<script>
+(function () {
+    function showRes(id, text) {
+        var el = document.getElementById(id);
+        el.textContent = text;
+    }
+
+    /* ===== 方式一：触发框（先验证再登录） ===== */
+    (function () {
+        var btn = document.getElementById('login-a');
+        var ticket = '';
+
+        if (typeof LwCaptcha.trigger !== 'function') {
+            showRes('msg-a', 'SDK 版本过旧（无 trigger），请强刷后重试');
+            return;
+        }
+
+        var trigger = LwCaptcha.trigger({
+            el: '#captcha-box',
+            type: 'auto',
+            algVersion: 1,                       // 算法主版本 v1
+            apiBase: 'https://captcha.lwcat.cn', // 自托管时改为你的服务地址
+            siteKey: 'site_default',             // 替换为你的站点 site_key
+            action: 'login',
+            onSuccess: function (tk) {
+                ticket = tk;
+                showRes('msg-a', '验证通过，票据已就绪，可点击登录');
+                btn.disabled = false;
+            },
+            onFail: function (info) {
+                showRes('msg-a', '验证失败：' + ((info && info.message) || ''));
+            }
+        });
+
+        function doLogin(tk) {
+            var fd = new FormData(document.getElementById('form-a'));
+            fd.append('ticket', tk);
+            fetch('/login', { method: 'POST', body: fd })
+                .then(function (r) { return r.json(); })
+                .then(function (res) {
+                    showRes('res-a', res.ok ? '登录成功（risk=' + res.risk + '）' : '验证未通过');
+                })
+                .catch(function () { showRes('res-a', '后端调用失败'); });
+        }
+
+        btn.addEventListener('click', function () {
+            if (ticket) { doLogin(ticket); }
+            else { showRes('msg-a', '请先点击上方「验证」完成人机验证'); }
+        });
+    })();
+
+    /* ===== 方式二：点击登录直接触发 ===== */
+    (function () {
+        var btn = document.getElementById('login-b');
+        LwCaptcha.init({
+            el: btn,
+            type: 'auto',
+            algVersion: 1,
+            apiBase: 'https://captcha.lwcat.cn',
+            siteKey: 'site_default',
+            action: 'login',
+            onSuccess: function (tk) {
+                var fd = new FormData(document.getElementById('form-b'));
+                fd.append('ticket', tk);
+                fetch('/login', { method: 'POST', body: fd })
+                    .then(function (r) { return r.json(); })
+                    .then(function (res) {
+                        showRes('res-b', res.ok ? '登录成功（risk=' + res.risk + '）' : '验证未通过');
+                    })
+                    .catch(function () { showRes('res-b', '后端调用失败'); });
+            },
+            onFail: function (info) {
+                showRes('msg-b', '验证失败：' + ((info && info.message) || ''));
+            }
+        });
+    })();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,13 @@
+{
+  "name": "lwcaptcha-sdk-demo-nodejs",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Cat-Captcha 算法 v1 · Node.js 接入示例",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=14"
+  }
+}
