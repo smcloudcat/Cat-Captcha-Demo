@@ -24,12 +24,35 @@
 
 ## 前端依赖
 
-- `https://captcha.lwcat.cn/public/captcha.css`
+- `https://captcha.lwcat.cn/public/captcha.css`（当前随 `?v=1.2.3` 引用）
 - `https://captcha.lwcat.cn/public/captcha.js`
 
 ## 算法版本
 
-示例固定 `algVersion: 1`（算法 v1.0.0）。版本命名：`v1.x.x` 无需更新接入文件；`v2.x.x` 起需按新 SDK 更新接入代码。
+示例同时支持算法 v1 与 v2，通过 **URL 参数切换**：打开页面时加 `?alg=2` 即切换算法 v2（默认 v1），页面顶部的切换按钮等价。
+
+| | 算法 v1（`?`，默认） | 算法 v2（`?alg=2`） |
+|---|---|---|
+| 服务端版本要求 | ≥ 1.1.0 | ≥ 1.5.3 且站点启用算法 v2 |
+| 站点开关 | alg1_enabled | alg2_enabled |
+| 一次性语义 | 失败可重试（≤4 次/会话） | 一次提交，失败即作废重开 |
+| 票据分级 | `tier` 均返回 | 敏感业务可要求 `tier=challenge` 并拒收 `passive` 票 |
+
+接入代码差异为零——集成方只需把 `algVersion` 从 `1` 改为 `2`：
+
+```js
+LwCaptcha.init({
+    el: '#captcha-box',
+    type: 'auto',
+    algVersion: 2,          // 算法 v2
+    apiBase: 'https://captcha.lwcat.cn',
+    siteKey: 'site_default',
+    action: 'login',
+    onSuccess: function (tk) { /* 票据提交业务后端 */ }
+});
+```
+
+后端 `/api/validate.php` 调用方式 v1/v2 完全一致（HMAC 签名 + 一次性消费），响应中的 `tier` / `challenge_type` / `alg_version` 可用于业务侧分级决策。
 
 ## License
 

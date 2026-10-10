@@ -77,6 +77,7 @@ const server = http.createServer((req, res) => {
           ok,
           risk: data.risk ?? null,
           alg_version: data.alg_version ?? null,
+          tier: data.tier ?? null,
           challenge_type: data.challenge_type ?? null,
         }));
       } catch (e) {

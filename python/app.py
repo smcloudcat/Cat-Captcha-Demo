@@ -66,6 +66,7 @@ def login():
         risk=data.get("risk"),
         alg_version=data.get("alg_version"),
         challenge_type=data.get("challenge_type"),
+        tier=data.get("tier"),
     )
 
 

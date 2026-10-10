@@ -5,8 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Cat-Captcha SDK 演示 · Node.js</title>
 <link rel="icon" type="image/svg+xml" href="https://captcha.lwcat.cn/favicon.svg">
-<link rel="stylesheet" href="https://captcha.lwcat.cn/public/captcha.css?v=1.0.5">
-<script src="https://captcha.lwcat.cn/public/captcha.js?v=1.0.5"></script>
+<link rel="stylesheet" href="https://captcha.lwcat.cn/public/captcha.css?v=1.2.3">
+<script src="https://captcha.lwcat.cn/public/captcha.js?v=1.2.3"></script>
 <style>
 :root { color-scheme: light; }
 * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -28,6 +28,11 @@ button:disabled { background: #a9b0ff; cursor: not-allowed; }
 </style>
 </head>
 <body>
+<div style="max-width:860px;margin:0 auto 16px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <b style="font-size:15px;">Cat-Captcha SDK 演示</b>
+    <a id="alg-switch" href="#" style="color:#4753ff;text-decoration:none;font-size:13px;padding:3px 12px;border:1px solid #4753ff;border-radius:999px;"></a>
+    <span style="color:#8b93a3;font-size:12px;">算法 v2 需服务端 ≥ 1.5.3 且站点已启用算法 v2（alg2_enabled）</span>
+</div>
 <div class="wrap">
     <div class="demo-grid">
 
@@ -59,6 +64,15 @@ button:disabled { background: #a9b0ff; cursor: not-allowed; }
     </div>
 </div>
 <script>
+    var ALG = (new URLSearchParams(location.search).get('alg') === '2') ? 2 : 1; // 算法主版本：?alg=2 切 v2
+    (function () {
+        var a = document.getElementById('alg-switch');
+        if (a) {
+            a.textContent = ALG === 2 ? '当前算法 v2 · 切回 v1' : '当前算法 v1 · 体验 v2';
+            a.href = ALG === 2 ? '?' : '?alg=2';
+        }
+    })();
+
 (function () {
     function showRes(id, text) {
         var el = document.getElementById(id);
@@ -78,7 +92,7 @@ button:disabled { background: #a9b0ff; cursor: not-allowed; }
         var trigger = LwCaptcha.trigger({
             el: '#captcha-box',
             type: 'auto',
-            algVersion: 1,                       // 算法主版本 v1
+            algVersion: ALG,                      // 算法主版本（?alg=2 切 v2）
             apiBase: 'https://captcha.lwcat.cn', // 自托管时改为你的服务地址
             siteKey: 'site_default',             // 替换为你的站点 site_key
             action: 'login',
@@ -98,7 +112,7 @@ button:disabled { background: #a9b0ff; cursor: not-allowed; }
             fetch('/login', { method: 'POST', body: fd })
                 .then(function (r) { return r.json(); })
                 .then(function (res) {
-                    showRes('res-a', res.ok ? '登录成功（risk=' + res.risk + '）' : '验证未通过');
+                    showRes('res-a', res.ok ? '登录成功（risk=' + res.risk + '，tier=' + (res.tier || '-') + '）' : '验证未通过');
                 })
                 .catch(function () { showRes('res-a', '后端调用失败'); });
         }
@@ -115,7 +129,7 @@ button:disabled { background: #a9b0ff; cursor: not-allowed; }
         LwCaptcha.init({
             el: btn,
             type: 'auto',
-            algVersion: 1,
+            algVersion: ALG,
             apiBase: 'https://captcha.lwcat.cn',
             siteKey: 'site_default',
             action: 'login',
@@ -125,7 +139,7 @@ button:disabled { background: #a9b0ff; cursor: not-allowed; }
                 fetch('/login', { method: 'POST', body: fd })
                     .then(function (r) { return r.json(); })
                     .then(function (res) {
-                        showRes('res-b', res.ok ? '登录成功（risk=' + res.risk + '）' : '验证未通过');
+                        showRes('res-b', res.ok ? '登录成功（risk=' + res.risk + '，tier=' + (res.tier || '-') + '）' : '验证未通过');
                     })
                     .catch(function () { showRes('res-b', '后端调用失败'); });
             },

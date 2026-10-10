@@ -49,4 +49,5 @@ echo json_encode([
     'risk' => $data['risk'] ?? null,
     'alg_version' => $data['alg_version'] ?? null,
     'challenge_type' => $data['challenge_type'] ?? null,
+    'tier' => $data['tier'] ?? null,
 ]);
