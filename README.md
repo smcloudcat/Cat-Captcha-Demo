@@ -24,7 +24,7 @@
 
 ## 前端依赖
 
-- `https://captcha.lwcat.cn/public/captcha.css`（当前随 `?v=1.2.3` 引用）
+- `https://captcha.lwcat.cn/public/captcha.css`（当前随 `?v=2.0.0` 引用，SDK 2.0.0 与算法 v2 同步定版）
 - `https://captcha.lwcat.cn/public/captcha.js`
 
 ## 算法版本
